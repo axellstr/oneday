@@ -3,16 +3,26 @@ export interface Habit {
   name: string;
   color: HabitColor;
   icon: HabitIcon;
-  createdAt: string; // When habit was first created
-  completedDates: string[]; // Array of ISO dates when habit was completed
-  history: StreakRecord[]; // Past streaks for the grid
+  createdAt: string;
+  completedDates: string[];
+  history: StreakRecord[];
+  
+  // Habit settings
+  frequency: HabitFrequency;
+  targetStreak?: number;
+  reminderTime?: string; // HH:MM format
+  
+  // Engagement
+  freezesUsed: string[]; // Dates when freezes were applied
 }
 
 export interface StreakRecord {
   startDate: string;
-  endDate: string; // When streak was broken/reset
-  days: number; // Total days achieved
+  endDate: string;
+  days: number;
 }
+
+export type HabitFrequency = 'daily' | 'weekdays' | 'weekends' | 'custom';
 
 export type HabitColor =
   | 'green'
@@ -42,6 +52,8 @@ export interface HabitFormData {
   name: string;
   color: HabitColor;
   icon: HabitIcon;
+  frequency?: HabitFrequency;
+  targetStreak?: number;
 }
 
 export interface DayData {
@@ -51,3 +63,30 @@ export interface DayData {
   level: 0 | 1 | 2 | 3 | 4;
 }
 
+// Engagement types
+export interface MomentumData {
+  score: number; // 0-100
+  trend: 'up' | 'down' | 'stable';
+  weeklyCompletion: number; // percentage
+  message: string;
+}
+
+export interface StreakStatus {
+  isAtRisk: boolean;
+  hoursRemaining: number;
+  riskLevel: 'safe' | 'warning' | 'danger';
+}
+
+export interface DailyMessage {
+  title: string;
+  subtitle: string;
+  stat?: string;
+}
+
+// App-wide settings stored locally
+export interface AppSettings {
+  freezesRemaining: number;
+  freezesResetDate: string; // First of current month
+  lastVisitDate: string;
+  totalXp: number;
+}

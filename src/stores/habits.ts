@@ -1,10 +1,13 @@
 import { atom, computed } from 'nanostores';
 import type { Habit, HabitFormData } from '../types';
-import { getHabits, saveHabits, generateId } from '../lib/storage';
 import { getTodayISO, calculateCurrentStreak } from '../lib/dates';
+import { supabase } from '../lib/supabase';
+import { $user } from './auth';
 
 // Main habits store
 export const $habits = atom<Habit[]>([]);
+export const $habitsLoading = atom<boolean>(true);
+export const $habitsError = atom<string | null>(null);
 
 // Modal state
 export const $isModalOpen = atom<boolean>(false);
@@ -19,10 +22,80 @@ export const $sortedHabits = computed($habits, habits => {
   });
 });
 
-// Initialize store from localStorage
-export function initializeStore(): void {
-  const habits = getHabits();
-  $habits.set(habits);
+// Generate unique ID
+function generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Initialize store from Supabase
+export async function initializeStore(): Promise<void> {
+  const user = $user.get();
+  
+  if (!user) {
+    $habits.set([]);
+    $habitsLoading.set(false);
+    return;
+  }
+
+  $habitsLoading.set(true);
+  $habitsError.set(null);
+
+  try {
+    const { data, error } = await supabase
+      .from('user_habits')
+      .select('habit_data')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      // No habits record yet - that's okay
+      if (error.code === 'PGRST116') {
+        $habits.set([]);
+        $habitsLoading.set(false);
+        return;
+      }
+      throw error;
+    }
+
+    const habits = data?.habit_data || [];
+    $habits.set(habits as Habit[]);
+  } catch (error) {
+    console.error('Error loading habits:', error);
+    $habitsError.set('Failed to load habits');
+    $habits.set([]);
+  } finally {
+    $habitsLoading.set(false);
+  }
+}
+
+// Save habits to Supabase
+async function saveHabits(habits: Habit[]): Promise<void> {
+  const user = $user.get();
+  
+  if (!user) {
+    console.warn('Cannot save habits: not authenticated');
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('user_habits')
+      .upsert({
+        user_id: user.id,
+        habit_data: habits,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id',
+      });
+
+    if (error) {
+      console.error('Error saving habits:', error);
+      $habitsError.set('Failed to save habits');
+    }
+  } catch (error) {
+    console.error('Error saving habits:', error);
+    $habitsError.set('Failed to save habits');
+  }
 }
 
 // Actions
@@ -38,6 +111,9 @@ export function addHabit(data: HabitFormData): void {
     createdAt: today,
     completedDates: [today], // Start with today completed
     history: [],
+    frequency: data.frequency || 'daily',
+    targetStreak: data.targetStreak,
+    freezesUsed: [],
   };
   
   const updated = [...habits, newHabit];
@@ -195,4 +271,3 @@ export function closeModal(): void {
   $isModalOpen.set(false);
   $editingHabit.set(null);
 }
-

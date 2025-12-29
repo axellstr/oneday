@@ -7,7 +7,7 @@ const { currentPath } = Astro.props;
 
 const links = [
   { href: '/app', label: 'Streaks' },
-  { href: '/app/dashboard', label: 'Dashboard' },
+  { href: '/app/dashboard', label: 'History' },
 ];
 ---
 
@@ -15,7 +15,8 @@ const links = [
   <div class="nav-inner">
     <div class="nav-links">
       {links.map(link => {
-        const isActive = currentPath === link.href;
+        const isActive = currentPath === link.href || 
+          (link.href === '/app' && currentPath.startsWith('/app/habit/'));
         return (
           <a
             href={link.href}

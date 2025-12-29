@@ -1,11 +1,14 @@
 ---
+import UserMenu from './UserMenu';
+
 interface Props {
   title?: string;
   showBack?: boolean;
   minimal?: boolean;
+  showAuth?: boolean;
 }
 
-const { title = '1Day', showBack = false, minimal = false } = Astro.props;
+const { title = '1Day', showBack = false, minimal = false, showAuth = true } = Astro.props;
 ---
 
 <header class={`header ${minimal ? 'header-transparent' : 'header-default'}`}>
@@ -22,6 +25,9 @@ const { title = '1Day', showBack = false, minimal = false } = Astro.props;
         <span class="opacity-50 mr-1">律</span><span class="font-bold">1</span>DAY
       </a>
     </div>
-    <slot name="actions" />
+    <div class="flex items-center gap-3">
+      <slot name="actions" />
+      {showAuth && <UserMenu client:load />}
+    </div>
   </div>
 </header>

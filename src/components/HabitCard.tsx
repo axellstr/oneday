@@ -17,8 +17,9 @@ import {
   Pencil,
   Trash2,
   Check,
+  AlertCircle,
 } from 'lucide-react';
-import type { Habit, HabitIcon } from '../types';
+import type { Habit, HabitIcon, StreakStatus } from '../types';
 import StreakCounter from './StreakCounter';
 import { calculateCurrentStreak, getTodayISO } from '../lib/dates';
 import { toggleComplete, openModal, deleteHabit } from '../stores/habits';
@@ -41,9 +42,10 @@ const ICON_MAP: Record<HabitIcon, React.ComponentType<{ className?: string }>> =
 
 interface HabitCardProps {
   habit: Habit;
+  streakStatus?: StreakStatus;
 }
 
-export default function HabitCard({ habit }: HabitCardProps) {
+export default function HabitCard({ habit, streakStatus }: HabitCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -53,6 +55,7 @@ export default function HabitCard({ habit }: HabitCardProps) {
   const bestStreak = getBestStreak(habit);
   const today = getTodayISO();
   const isCompletedToday = completedDates.includes(today);
+  const isAtRisk = streakStatus?.isAtRisk && days > 0;
 
   const handleToggleComplete = () => {
     toggleComplete(habit.id);
@@ -125,25 +128,45 @@ export default function HabitCard({ habit }: HabitCardProps) {
 
         {/* Content */}
         <div className="habit-card-content">
-          {/* Icon */}
-          <div className="habit-card-icon">
-            <Icon className="w-5 h-5 text-muted" />
-          </div>
+          {/* Clickable area for navigation */}
+          <a
+            href={`/app/habit/${habit.id}`}
+            className="habit-card-link"
+          >
+            {/* At risk indicator */}
+            {isAtRisk && (
+              <div className="habit-card-risk">
+                <AlertCircle className="w-3 h-3" />
+                <span>{streakStatus?.hoursRemaining}h left</span>
+              </div>
+            )}
 
-          {/* Streak counter */}
-          <StreakCounter days={days} />
+            {/* Header: Icon + Name */}
+            <div className="habit-card-header">
+              <div className="habit-card-icon">
+                <Icon className="w-4 h-4 text-muted" />
+              </div>
+              <h3 className="habit-card-name">
+                {habit.name}
+              </h3>
+            </div>
 
-          {/* Habit name */}
-          <h3 className="habit-card-name">
-            {habit.name}
-          </h3>
+            {/* Hero: Streak counter */}
+            <div className="habit-card-hero">
+              <StreakCounter days={days} />
+            </div>
 
-          {/* Best streak */}
-          {bestStreak > days && (
-            <p className="habit-card-best">
-              Best: {bestStreak}d
-            </p>
-          )}
+            {/* Footer: Stats row */}
+            <div className="habit-card-footer">
+              {bestStreak > 0 && (
+                <div className="habit-card-stat">
+                  <span className="habit-card-stat-label">Best</span>
+                  <span className="habit-card-stat-value">{bestStreak}d</span>
+                </div>
+              )}
+              {!bestStreak && <div className="habit-card-stat-spacer" />}
+            </div>
+          </a>
 
           {/* Check-in button */}
           <motion.button

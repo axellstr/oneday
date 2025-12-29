@@ -1,0 +1,16 @@
+---
+export const prerender = false;
+
+import Layout from '../../../layouts/Layout.astro';
+import Navigation from '../../../components/Navigation.astro';
+import HabitDetail from '../../../components/HabitDetail';
+
+const { id } = Astro.params;
+---
+
+<Layout title="Habit - Romika">
+  <main>
+    <HabitDetail client:load habitId={id || ''} />
+  </main>
+  <Navigation currentPath="/app" />
+</Layout>

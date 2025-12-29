@@ -79,6 +79,8 @@ export function generateSampleHabits(): Habit[] {
       createdAt: dateStr(100),
       completedDates: noSmokingCompleted,
       history: noSmokingHistory,
+      frequency: 'daily',
+      freezesUsed: [],
     },
     {
       id: 'sample-gym',
@@ -88,6 +90,8 @@ export function generateSampleHabits(): Habit[] {
       createdAt: dateStr(60),
       completedDates: gymCompleted,
       history: gymHistory,
+      frequency: 'weekdays',
+      freezesUsed: [],
     },
     {
       id: 'sample-meditation',
@@ -97,6 +101,9 @@ export function generateSampleHabits(): Habit[] {
       createdAt: dateStr(90),
       completedDates: meditationCompleted,
       history: meditationHistory,
+      frequency: 'daily',
+      targetStreak: 100,
+      freezesUsed: [],
     },
     {
       id: 'sample-reading',
@@ -106,6 +113,8 @@ export function generateSampleHabits(): Habit[] {
       createdAt: dateStr(80),
       completedDates: readingCompleted,
       history: readingHistory,
+      frequency: 'daily',
+      freezesUsed: [],
     },
     {
       id: 'sample-no-alcohol',
@@ -115,6 +124,8 @@ export function generateSampleHabits(): Habit[] {
       createdAt: dateStr(60),
       completedDates: noAlcoholCompleted,
       history: noAlcoholHistory,
+      frequency: 'daily',
+      freezesUsed: [],
     },
   ];
 
@@ -176,6 +187,9 @@ function migrateHabits(habits: any[]): Habit[] {
       createdAt: habit.createdAt,
       completedDates: uniqueDates,
       history: habit.history || [],
+      frequency: habit.frequency || 'daily',
+      targetStreak: habit.targetStreak,
+      freezesUsed: habit.freezesUsed || [],
     } as Habit;
   });
 }

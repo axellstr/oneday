@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { $habits, initializeStore } from '../stores/habits';
-import { initializeSampleData } from '../lib/sampleData';
+import { $habits, $habitsLoading, initializeStore } from '../stores/habits';
+import { $user, $authLoading, initializeAuth } from '../stores/auth';
 import { getGlobalStats, getBestStreak, getTotalDays } from '../lib/streaks';
 import { calculateCurrentStreak, getStreakStartDate } from '../lib/dates';
 import ContributionGrid from './ContributionGrid';
@@ -12,19 +12,41 @@ import type { Habit } from '../types';
 
 export default function HistoryView() {
   const habits = useStore($habits);
+  const habitsLoading = useStore($habitsLoading);
+  const user = useStore($user);
+  const authLoading = useStore($authLoading);
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
   const [expandedHabitId, setExpandedHabitId] = useState<string | null>(null);
 
+  // Initialize auth first, then habits
   useEffect(() => {
-    initializeSampleData();
-    initializeStore();
+    initializeAuth();
   }, []);
 
+  // Load habits when user is available
+  useEffect(() => {
+    if (user) {
+      initializeStore();
+    }
+  }, [user]);
+
   const stats = getGlobalStats(habits);
+  const isLoading = authLoading || habitsLoading;
 
   const toggleExpanded = (habitId: string) => {
     setExpandedHabitId(expandedHabitId === habitId ? null : habitId);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 size={24} className="auth-spinner text-muted" />
+          <span className="text-sm text-muted">Loading history...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (habits.length === 0) {
     return (
@@ -38,7 +60,7 @@ export default function HistoryView() {
               Start tracking habits to see your history.
             </p>
             <a
-              href="/"
+              href="/app"
               className="btn btn-primary mt-6"
             >
               Go to Streaks

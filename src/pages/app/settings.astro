@@ -1,0 +1,112 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+---
+
+<Layout title="Settings - 1Day">
+  <Header title="Settings" showBack={true} />
+  <main class="settings-container">
+    <div class="space-y-6">
+      <!-- App info -->
+      <section class="settings-section settings-section-padded">
+        <div class="settings-info">
+          <div class="settings-icon">
+            <span class="settings-icon-text">1</span>
+          </div>
+          <div>
+            <h2 class="settings-app-name"><span class="opacity-50 mr-0\.5">律</span><span class="font-bold">1</span>DAY</h2>
+            <p class="settings-app-subtitle">Streak Tracker</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data management -->
+      <section class="settings-section overflow-hidden">
+        <h3 class="settings-section-header">
+          Data
+        </h3>
+        <div class="divide-y">
+          <button
+            id="exportBtn"
+            class="settings-btn"
+          >
+            <span>Export</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" x2="12" y1="15" y2="3"/>
+            </svg>
+          </button>
+          <label class="settings-btn cursor-pointer">
+            <span>Import</span>
+            <input type="file" id="importInput" accept=".json" class="hidden" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" x2="12" y1="3" y2="15"/>
+            </svg>
+          </label>
+          <button
+            id="clearBtn"
+            class="settings-btn"
+          >
+            Clear all data
+          </button>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <section class="settings-footer">
+        <p class="settings-footer-text">Data stored locally</p>
+      </section>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const STORAGE_KEY = '1day-habits';
+
+  document.getElementById('exportBtn')?.addEventListener('click', () => {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) {
+      alert('No data to export');
+      return;
+    }
+    
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `1day-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('importInput')?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid format');
+      }
+
+      if (confirm('Replace current data?')) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        window.location.reload();
+      }
+    } catch {
+      alert('Invalid file');
+    }
+  });
+
+  document.getElementById('clearBtn')?.addEventListener('click', () => {
+    if (confirm('Delete all habits and history?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.href = '/app';
+    }
+  });
+</script>

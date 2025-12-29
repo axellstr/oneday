@@ -1,0 +1,82 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="1Day - Track Your Streaks">
+  <div class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="landing-header">
+      <div class="landing-header-inner">
+        <a href="/" class="header-logo">
+          <span class="opacity-50 mr-1">律</span><span>1</span>DAY
+        </a>
+        <a href="/app" class="landing-link">
+          Open App
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <main class="landing-hero">
+      <div class="landing-hero-inner">
+        <p class="landing-subtitle">
+          Streak Tracker
+        </p>
+        
+        <h1 class="landing-title">
+          Every day<br />counts
+        </h1>
+        
+        <p class="landing-description">
+          Build. Break. Begin again.<br />
+          Your history is your teacher.
+        </p>
+
+        <a href="/app" class="btn btn-primary">
+          Start tracking
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="m12 5 7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </main>
+
+    <!-- Features -->
+    <section class="landing-features">
+      <div class="landing-features-inner">
+        <div class="landing-features-grid">
+          <div>
+            <p class="landing-feature-number">01</p>
+            <h3 class="landing-feature-title">Simple tracking</h3>
+            <p class="landing-feature-desc">
+              No complexity. Just habits and day counts. Focus on what matters.
+            </p>
+          </div>
+          <div>
+            <p class="landing-feature-number">02</p>
+            <h3 class="landing-feature-title">Visual history</h3>
+            <p class="landing-feature-desc">
+              See your progress at a glance with a year-long contribution grid.
+            </p>
+          </div>
+          <div>
+            <p class="landing-feature-number">03</p>
+            <h3 class="landing-feature-title">Local first</h3>
+            <p class="landing-feature-desc">
+              Your data stays on your device. No account required.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+      <div class="landing-footer-inner">
+        <span class="landing-footer-text"><span class="opacity-50 mr-0\.5">律</span><span class="font-bold">1</span>DAY</span>
+        <span class="landing-footer-text">Start over.</span>
+      </div>
+    </footer>
+  </div>
+</Layout>

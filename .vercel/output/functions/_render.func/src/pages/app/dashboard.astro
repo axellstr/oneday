@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Navigation from '../../components/Navigation.astro';
+import HistoryView from '../../components/HistoryView';
+---
+
+<Layout title="Dashboard - 1Day">
+  <Header title="Dashboard" showBack={false} />
+  <main>
+    <HistoryView client:load />
+  </main>
+  <Navigation currentPath="/app/dashboard" />
+</Layout>
+

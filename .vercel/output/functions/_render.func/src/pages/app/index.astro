@@ -1,0 +1,15 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Navigation from '../../components/Navigation.astro';
+import Dashboard from '../../components/Dashboard';
+---
+
+<Layout title="Streaks - 1Day">
+  <Header title="1Day" />
+  <main>
+    <Dashboard client:load />
+  </main>
+  <Navigation currentPath="/app" />
+</Layout>
+

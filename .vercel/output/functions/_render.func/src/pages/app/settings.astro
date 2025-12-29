@@ -1,0 +1,119 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Navigation from '../../components/Navigation.astro';
+---
+
+<Layout title="Settings - 1Day">
+  <Header title="Settings" showBack={true} />
+  <main class="settings-container">
+    <div class="space-y-6">
+      <!-- App info -->
+      <section class="settings-section settings-section-padded">
+        <div class="settings-info">
+          <div class="settings-icon">
+            <span class="settings-icon-text">1</span>
+          </div>
+          <div>
+            <h2 class="settings-app-name"><span class="opacity-50 mr-0\.5">律</span><span class="font-bold">1</span>DAY</h2>
+            <p class="settings-app-subtitle">Streak Tracker</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Account section -->
+      <section class="settings-section overflow-hidden">
+        <h3 class="settings-section-header">
+          Account
+        </h3>
+        <div class="divide-y">
+          <a
+            href="/auth/profile"
+            class="settings-btn"
+          >
+            <span>Profile</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+              <path d="m9 18 6-6-6-6"/>
+            </svg>
+          </a>
+          <button
+            id="signOutBtn"
+            class="settings-btn"
+          >
+            <span>Sign out</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" x2="9" y1="12" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Data management -->
+      <section class="settings-section overflow-hidden">
+        <h3 class="settings-section-header">
+          Data
+        </h3>
+        <div class="divide-y">
+          <button
+            id="exportBtn"
+            class="settings-btn"
+          >
+            <span>Export data</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" x2="12" y1="15" y2="3"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <section class="settings-footer">
+        <p class="settings-footer-text">Data synced to cloud</p>
+      </section>
+    </div>
+  </main>
+  <Navigation currentPath="/app/settings" />
+</Layout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  // Sign out
+  document.getElementById('signOutBtn')?.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  });
+
+  // Export data
+  document.getElementById('exportBtn')?.addEventListener('click', async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      alert('Please sign in to export data');
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('user_habits')
+      .select('habit_data')
+      .eq('user_id', session.user.id)
+      .single();
+
+    if (error || !data) {
+      alert('No data to export');
+      return;
+    }
+    
+    const blob = new Blob([JSON.stringify(data.habit_data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `1day-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+</script>

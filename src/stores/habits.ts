@@ -106,14 +106,10 @@ export function addHabit(data: HabitFormData): void {
   const newHabit: Habit = {
     id: generateId(),
     name: data.name,
-    color: data.color,
     icon: data.icon,
     createdAt: today,
     completedDates: [today], // Start with today completed
     history: [],
-    frequency: data.frequency || 'daily',
-    targetStreak: data.targetStreak,
-    freezesUsed: [],
   };
   
   const updated = [...habits, newHabit];
@@ -126,7 +122,7 @@ export function updateHabit(id: string, data: HabitFormData): void {
   const habits = $habits.get();
   const updated = habits.map(h =>
     h.id === id
-      ? { ...h, name: data.name, color: data.color, icon: data.icon }
+      ? { ...h, name: data.name, icon: data.icon }
       : h
   );
   

@@ -59,7 +59,6 @@ export default function HabitModal() {
 
     const data: HabitFormData = {
       name: name.trim(),
-      color: 'green', // Not used in duochrome design
       icon,
     };
 

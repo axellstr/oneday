@@ -41,9 +41,9 @@ export function AuthForm() {
       className="auth-form-container"
     >
       <div className="auth-header">
-        <h1 className="auth-title">Welcome to 1Day</h1>
+        <h1 className="auth-title">Welcome to 1DAY</h1>
         <p className="auth-subtitle">
-          Sign in to track your habits and build lasting streaks
+          Build habits. Track streaks. One day at a time.
         </p>
       </div>
 

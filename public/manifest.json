@@ -1,7 +1,7 @@
 {
-  "name": "1Day - Streak Tracker",
-  "short_name": "1Day",
-  "description": "Track your habits and build lasting streaks",
+  "name": "oneday",
+  "short_name": "oneday",
+  "description": "Build habits. Track streaks. One day at a time.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0d1117",

@@ -1,4 +1,4 @@
-import { differenceInDays, parseISO, format, startOfDay, eachDayOfInterval, subDays, isWithinInterval, addDays } from 'date-fns';
+import { parseISO, format, startOfDay, eachDayOfInterval, subDays, isWithinInterval, addDays } from 'date-fns';
 
 /**
  * Calculate the current streak from an array of completed dates
@@ -63,16 +63,6 @@ export function getStreakStartDate(completedDates: string[]): string | null {
   }
   
   return streakStart;
-}
-
-/**
- * Legacy function - Calculate the number of days in a streak from start date to now
- * @deprecated Use calculateCurrentStreak instead
- */
-export function calculateStreakDays(startDate: string): number {
-  const start = startOfDay(parseISO(startDate));
-  const now = startOfDay(new Date());
-  return differenceInDays(now, start);
 }
 
 /**

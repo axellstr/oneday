@@ -1,19 +1,10 @@
 export interface Habit {
   id: string;
   name: string;
-  color: HabitColor;
   icon: HabitIcon;
   createdAt: string;
   completedDates: string[];
   history: StreakRecord[];
-  
-  // Habit settings
-  frequency: HabitFrequency;
-  targetStreak?: number;
-  reminderTime?: string; // HH:MM format
-  
-  // Engagement
-  freezesUsed: string[]; // Dates when freezes were applied
 }
 
 export interface StreakRecord {
@@ -21,18 +12,6 @@ export interface StreakRecord {
   endDate: string;
   days: number;
 }
-
-export type HabitFrequency = 'daily' | 'weekdays' | 'weekends' | 'custom';
-
-export type HabitColor =
-  | 'green'
-  | 'blue'
-  | 'purple'
-  | 'orange'
-  | 'pink'
-  | 'red'
-  | 'yellow'
-  | 'cyan';
 
 export type HabitIcon =
   | 'cigarette-off'
@@ -50,10 +29,7 @@ export type HabitIcon =
 
 export interface HabitFormData {
   name: string;
-  color: HabitColor;
   icon: HabitIcon;
-  frequency?: HabitFrequency;
-  targetStreak?: number;
 }
 
 export interface DayData {
@@ -81,12 +57,4 @@ export interface DailyMessage {
   title: string;
   subtitle: string;
   stat?: string;
-}
-
-// App-wide settings stored locally
-export interface AppSettings {
-  freezesRemaining: number;
-  freezesResetDate: string; // First of current month
-  lastVisitDate: string;
-  totalXp: number;
 }

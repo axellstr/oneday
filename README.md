@@ -1,43 +1,63 @@
-# Astro Starter Kit: Minimal
+# oneday
 
-```sh
-npm create astro@latest -- --template minimal
+Build habits. Track streaks. One day at a time.
+
+## Features
+
+- **Streak Tracking**: Track consecutive days of habit completion
+- **Contribution Grid**: GitHub-style visualization of your year
+- **Momentum Score**: See your weekly consistency at a glance
+- **Daily Messages**: Personalized motivation based on your progress
+- **Cloud Sync**: Sign in with Google to sync across devices
+
+## Tech Stack
+
+- [Astro](https://astro.build) - Full-stack framework
+- [React](https://react.dev) - UI components
+- [Supabase](https://supabase.com) - Auth & database
+- [Vercel](https://vercel.com) - Deployment
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Add your Supabase credentials to .env
+
+# Run development server
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Environment Variables
 
-## 🚀 Project Structure
+Create a `.env` file with:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```
+PUBLIC_SUPABASE_URL=your_supabase_url
+PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Database Setup
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Run `supabase-setup.sql` in your Supabase SQL Editor to create the required tables.
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Commands
 
-## 🧞 Commands
+| Command | Action |
+|---------|--------|
+| `npm run dev` | Start dev server at `localhost:4321` |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
 
-All commands are run from the root of the project, from a terminal:
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-## 👀 Want to learn more?
+need to work on the contribution-wrapper.
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+I need a professional clean grid for desktop and mobile.
+
+Not sure how it goes currently but initially i would like to have the days of the month current month and an option that will give you the year.
+
+nice clean and responsive

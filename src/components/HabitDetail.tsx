@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { motion } from 'motion/react';
 import {
@@ -16,7 +16,6 @@ import {
   Zap,
   Smile,
   Check,
-  Snowflake,
   TrendingUp,
   Calendar,
   Award,
@@ -31,8 +30,6 @@ import {
   getCompletionRate,
   getMilestoneProgress,
   getBestDayOfWeek,
-  canUseFreeze,
-  getFreezesRemaining,
 } from '../lib/engagement';
 import ContributionGrid from './ContributionGrid';
 
@@ -60,7 +57,6 @@ export default function HabitDetail({ habitId }: HabitDetailProps) {
   const habitsLoading = useStore($habitsLoading);
   const user = useStore($user);
   const authLoading = useStore($authLoading);
-  const [freezeAvailable, setFreezeAvailable] = useState(false);
 
   // Initialize auth first, then habits
   useEffect(() => {
@@ -71,7 +67,6 @@ export default function HabitDetail({ habitId }: HabitDetailProps) {
   useEffect(() => {
     if (user) {
       initializeStore();
-      setFreezeAvailable(canUseFreeze());
     }
   }, [user]);
 
@@ -113,7 +108,6 @@ export default function HabitDetail({ habitId }: HabitDetailProps) {
   const bestDay = getBestDayOfWeek(habit);
   const today = getTodayISO();
   const isCompletedToday = (habit.completedDates || []).includes(today);
-  const freezesRemaining = getFreezesRemaining();
 
   const handleToggleComplete = () => {
     toggleComplete(habit.id);
@@ -291,22 +285,6 @@ export default function HabitDetail({ habitId }: HabitDetailProps) {
             </div>
           )}
 
-          {/* Streak freeze info */}
-          <div className="card card-padded">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 flex items-center justify-center border border-default rounded">
-                <Snowflake className="w-5 h-5 text-muted" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-white">Streak Freezes</p>
-                <p className="text-xs text-muted mt-0.5">
-                  {freezesRemaining > 0
-                    ? `${freezesRemaining} available this month`
-                    : 'Used this month'}
-                </p>
-              </div>
-            </div>
-          </div>
         </motion.div>
       </div>
     </div>

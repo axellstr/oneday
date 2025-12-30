@@ -8,7 +8,7 @@ interface Props {
   showAuth?: boolean;
 }
 
-const { title = '1Day', showBack = false, minimal = false, showAuth = true } = Astro.props;
+const { title = 'oneday', showBack = false, minimal = false, showAuth = true } = Astro.props;
 ---
 
 <header class={`header ${minimal ? 'header-transparent' : 'header-default'}`}>
@@ -21,9 +21,7 @@ const { title = '1Day', showBack = false, minimal = false, showAuth = true } = A
           </svg>
         </a>
       )}
-      <a href="/" class="header-logo">
-        <span class="opacity-50 mr-1">律</span><span class="font-bold">1</span>DAY
-      </a>
+      <a href="/" class="header-logo">oneday</a>
     </div>
     <div class="flex items-center gap-3">
       <slot name="actions" />

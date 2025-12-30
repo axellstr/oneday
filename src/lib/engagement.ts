@@ -1,6 +1,6 @@
-import type { Habit, MomentumData, StreakStatus, DailyMessage, AppSettings } from '../types';
+import type { Habit, MomentumData, StreakStatus, DailyMessage } from '../types';
 import { getTodayISO, calculateCurrentStreak } from './dates';
-import { subDays, format, differenceInHours, parseISO, startOfMonth, isSameMonth } from 'date-fns';
+import { subDays, format, differenceInHours, parseISO } from 'date-fns';
 
 // ============================================
 // MOMENTUM SCORE
@@ -80,7 +80,7 @@ export function calculateMomentum(habits: Habit[]): MomentumData {
   else if (weeklyRate < lastWeekRate - 0.1) trend = 'down';
 
   // Generate message based on score
-  const message = getMomentumMessage(score, trend, weeklyRate);
+  const message = getMomentumMessage(score, trend);
 
   return {
     score,
@@ -90,7 +90,7 @@ export function calculateMomentum(habits: Habit[]): MomentumData {
   };
 }
 
-function getMomentumMessage(score: number, trend: 'up' | 'down' | 'stable', weeklyRate: number): string {
+function getMomentumMessage(score: number, trend: 'up' | 'down' | 'stable'): string {
   if (score >= 90) return "Unstoppable. You're in the zone.";
   if (score >= 75) return "Strong momentum. Keep pushing.";
   if (score >= 50) {
@@ -107,45 +107,6 @@ function getMomentumMessage(score: number, trend: 'up' | 'down' | 'stable', week
 // ============================================
 // STREAK AT RISK
 // ============================================
-
-/**
- * Check if any habit's streak is at risk (not checked in today)
- */
-export function getStreakAtRisk(habits: Habit[]): { habit: Habit; status: StreakStatus } | null {
-  const today = getTodayISO();
-  const now = new Date();
-  const endOfDay = new Date(now);
-  endOfDay.setHours(23, 59, 59, 999);
-  
-  const hoursLeft = Math.max(0, differenceInHours(endOfDay, now));
-
-  for (const habit of habits) {
-    const currentStreak = calculateCurrentStreak(habit.completedDates || []);
-    
-    // Only care about active streaks
-    if (currentStreak === 0) continue;
-
-    const completedToday = (habit.completedDates || []).includes(today);
-    
-    if (!completedToday) {
-      let riskLevel: 'safe' | 'warning' | 'danger' = 'safe';
-      
-      if (hoursLeft <= 2) riskLevel = 'danger';
-      else if (hoursLeft <= 6) riskLevel = 'warning';
-      
-      return {
-        habit,
-        status: {
-          isAtRisk: true,
-          hoursRemaining: hoursLeft,
-          riskLevel,
-        },
-      };
-    }
-  }
-
-  return null;
-}
 
 /**
  * Get all habits with their streak risk status
@@ -204,8 +165,6 @@ const MORNING_MESSAGES: DailyMessage[] = [
  * Get personalized daily message based on user's data
  */
 export function getDailyMessage(habits: Habit[]): DailyMessage {
-  const today = getTodayISO();
-  
   // Use date as seed for consistent daily message
   const dayOfYear = Math.floor(
     (new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)
@@ -273,100 +232,6 @@ export function getDailyMessage(habits: Habit[]): DailyMessage {
   }
 
   return message;
-}
-
-// ============================================
-// STREAK FREEZE
-// ============================================
-
-const FREEZES_PER_MONTH = 1;
-const SETTINGS_KEY = 'romika_app_settings';
-
-/**
- * Get or initialize app settings
- */
-export function getAppSettings(): AppSettings {
-  if (typeof window === 'undefined') {
-    return getDefaultSettings();
-  }
-  
-  const stored = localStorage.getItem(SETTINGS_KEY);
-  if (!stored) {
-    const defaults = getDefaultSettings();
-    saveAppSettings(defaults);
-    return defaults;
-  }
-
-  const settings: AppSettings = JSON.parse(stored);
-  
-  // Reset freezes if new month
-  const resetDate = parseISO(settings.freezesResetDate);
-  const now = new Date();
-  
-  if (!isSameMonth(resetDate, now)) {
-    settings.freezesRemaining = FREEZES_PER_MONTH;
-    settings.freezesResetDate = format(startOfMonth(now), 'yyyy-MM-dd');
-    saveAppSettings(settings);
-  }
-
-  return settings;
-}
-
-function getDefaultSettings(): AppSettings {
-  return {
-    freezesRemaining: FREEZES_PER_MONTH,
-    freezesResetDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
-    lastVisitDate: getTodayISO(),
-    totalXp: 0,
-  };
-}
-
-export function saveAppSettings(settings: AppSettings): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-}
-
-/**
- * Check if freeze is available
- */
-export function canUseFreeze(): boolean {
-  const settings = getAppSettings();
-  return settings.freezesRemaining > 0;
-}
-
-/**
- * Use a streak freeze on a habit for yesterday
- */
-export function useStreakFreeze(habit: Habit): Habit | null {
-  const settings = getAppSettings();
-  
-  if (settings.freezesRemaining <= 0) {
-    return null;
-  }
-
-  const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
-  
-  // Check if already frozen for yesterday
-  if ((habit.freezesUsed || []).includes(yesterday)) {
-    return null;
-  }
-
-  // Apply freeze
-  settings.freezesRemaining -= 1;
-  saveAppSettings(settings);
-
-  return {
-    ...habit,
-    freezesUsed: [...(habit.freezesUsed || []), yesterday],
-    // Don't add to completedDates - freeze just prevents streak break
-  };
-}
-
-/**
- * Get remaining freezes this month
- */
-export function getFreezesRemaining(): number {
-  return getAppSettings().freezesRemaining;
 }
 
 // ============================================
@@ -469,4 +334,3 @@ export function getMilestoneProgress(currentStreak: number): {
     progress: Math.min(100, Math.round(progress)),
   };
 }
-

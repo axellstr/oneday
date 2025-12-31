@@ -12,12 +12,14 @@ import {
   addMonths,
   subMonths,
   isToday,
-  isFuture
+  isFuture,
+  isBefore
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { DayData } from '../types';
 import { $habits } from '../stores/habits';
 import { generateContributionData } from '../lib/streaks';
+import { getLaunchDate } from '../lib/dates';
 
 // Duochrome intensity levels - white shades
 const LEVEL_CLASSES = [
@@ -74,6 +76,7 @@ export default function ContributionGrid({
           <button 
             onClick={() => setCurrentMonth(prev => subMonths(prev, 1))}
             className="contribution-nav-btn"
+            disabled={isSameMonth(currentMonth, getLaunchDate()) || isBefore(currentMonth, getLaunchDate())}
             aria-label="Previous month"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -156,6 +159,7 @@ function MonthView({
   onHover: (day: DayData, event: React.MouseEvent) => void;
   onLeave: () => void;
 }) {
+  const launchDate = getLaunchDate();
   const days = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
@@ -212,10 +216,12 @@ function MonthView({
           const dayData = dayDataMap.get(dateStr);
           const isTodayDate = isToday(date);
           const isFutureDate = isFuture(date);
+          const isBeforeLaunch = isBefore(date, launchDate);
           const dayNumber = date.getDate();
           
           const level = dayData?.level ?? 0;
           const hasActivity = dayData && dayData.activeHabits > 0;
+          const isInactive = isFutureDate || isBeforeLaunch;
 
           return (
             <motion.div
@@ -223,12 +229,12 @@ function MonthView({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.008 }}
-              className={`month-cell ${isTodayDate ? 'month-cell-today' : ''} ${isFutureDate ? 'month-cell-future' : ''} ${hasActivity ? 'month-cell-active' : ''}`}
-              onMouseEnter={dayData && !isFutureDate ? (e) => onHover(dayData, e) : undefined}
+              className={`month-cell ${isTodayDate ? 'month-cell-today' : ''} ${isInactive ? 'month-cell-future' : ''} ${hasActivity ? 'month-cell-active' : ''}`}
+              onMouseEnter={dayData && !isInactive ? (e) => onHover(dayData, e) : undefined}
               onMouseLeave={onLeave}
             >
               <span className="month-cell-day">{dayNumber}</span>
-              {!isFutureDate && (
+              {!isInactive && (
                 <div className={`month-cell-indicator ${LEVEL_CLASSES[level]}`} />
               )}
             </motion.div>

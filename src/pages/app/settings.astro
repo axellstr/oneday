@@ -81,10 +81,11 @@ import Navigation from '../../components/Navigation.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { signOut } from '../../stores/auth';
 
-  // Sign out
+  // Sign out - use the store's signOut function to ensure atoms are cleared
   document.getElementById('signOutBtn')?.addEventListener('click', async () => {
-    await supabase.auth.signOut();
+    await signOut();
     window.location.href = '/';
   });
 

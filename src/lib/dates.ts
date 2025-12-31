@@ -1,4 +1,5 @@
-import { parseISO, format, startOfDay, eachDayOfInterval, subDays, isWithinInterval, addDays } from 'date-fns';
+import { parseISO, format, startOfDay, eachDayOfInterval, subDays, isWithinInterval, addDays, isBefore } from 'date-fns';
+import { APP_LAUNCH_DATE } from './constants';
 
 /**
  * Calculate the current streak from an array of completed dates
@@ -87,13 +88,31 @@ export function formatDaysLabel(days: number): string {
 }
 
 /**
- * Get an array of dates for the last N days
+ * Get an array of dates for the last N days, but not before APP_LAUNCH_DATE
  */
 export function getLastNDays(n: number): string[] {
   const end = startOfDay(new Date());
-  const start = subDays(end, n - 1);
+  let start = subDays(end, n - 1);
+  
+  // Don't show dates before app launch
+  const launchDate = parseISO(APP_LAUNCH_DATE);
+  if (isBefore(start, launchDate)) {
+    start = launchDate;
+  }
+  
+  // If launch date is in the future, return empty array
+  if (isBefore(end, launchDate)) {
+    return [];
+  }
   
   return eachDayOfInterval({ start, end }).map(date => format(date, 'yyyy-MM-dd'));
+}
+
+/**
+ * Get the app launch date
+ */
+export function getLaunchDate(): Date {
+  return parseISO(APP_LAUNCH_DATE);
 }
 
 /**

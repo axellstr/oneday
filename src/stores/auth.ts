@@ -55,18 +55,17 @@ export async function initializeAuth(): Promise<void> {
           return;
         }
 
-        // Ignore INITIAL_SESSION if we're already initialized with a user
-        // This prevents race conditions when tab visibility changes trigger auth checks
+        // Handle INITIAL_SESSION - this fires when the auth listener is first set up
         if (event === 'INITIAL_SESSION') {
-          // Only process if we don't have a user yet, or if session provides a valid user
-          const currentUser = $user.get();
-          if (currentUser && !session?.user) {
-            // Already have a user, don't clear it for an INITIAL_SESSION with no user
-            return;
-          }
           if (session?.user) {
             $session.set(session);
             $user.set(session.user);
+          } else {
+            // No session means user is signed out - clear state
+            // This is important for sign out to work correctly with HMR in dev
+            $session.set(null);
+            $user.set(null);
+            $profile.set(null);
           }
           return;
         }

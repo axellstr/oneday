@@ -1,4 +1,4 @@
-# oneday
+# 1DAY
 
 Build habits. Track streaks. One day at a time.
 

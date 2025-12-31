@@ -4,13 +4,16 @@ export const prerender = false;
 import Layout from '../../../layouts/Layout.astro';
 import Navigation from '../../../components/Navigation.astro';
 import HabitDetail from '../../../components/HabitDetail';
+import ErrorBoundary from '../../../components/ErrorBoundary';
 
 const { id } = Astro.params;
 ---
 
-<Layout title="Habit - oneday">
+<Layout title="Habit - 1DAY">
   <main>
-    <HabitDetail client:load habitId={id || ''} />
+    <ErrorBoundary client:load>
+      <HabitDetail client:load habitId={id || ''} />
+    </ErrorBoundary>
   </main>
   <Navigation currentPath="/app" />
 </Layout>

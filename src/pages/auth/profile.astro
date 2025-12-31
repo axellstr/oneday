@@ -1,9 +1,11 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ProfilePage from '../../components/ProfilePage';
+import ErrorBoundary from '../../components/ErrorBoundary';
 ---
 
-<Layout title="Profile - oneday">
-  <ProfilePage client:load />
+<Layout title="Profile - 1DAY">
+  <ErrorBoundary client:load>
+    <ProfilePage client:load />
+  </ErrorBoundary>
 </Layout>
-

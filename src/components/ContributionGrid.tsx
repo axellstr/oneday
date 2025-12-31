@@ -1,7 +1,20 @@
 import { useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '@nanostores/react';
-import { format, parseISO, startOfWeek, addDays, subWeeks, getMonth } from 'date-fns';
+import { 
+  format, 
+  parseISO, 
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  getDay,
+  isSameMonth,
+  addMonths,
+  subMonths,
+  isToday,
+  isFuture
+} from 'date-fns';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { DayData } from '../types';
 import { $habits } from '../stores/habits';
 import { generateContributionData } from '../lib/streaks';
@@ -15,70 +28,29 @@ const LEVEL_CLASSES = [
   'bg-level-4',   // Level 4
 ];
 
-const DAYS_OF_WEEK = ['M', '', 'W', '', 'F', '', ''];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAYS_OF_WEEK_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const DAYS_OF_WEEK_FULL = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 interface ContributionGridProps {
   filterHabitId?: string | null;
 }
 
-export default function ContributionGrid({ filterHabitId = null }: ContributionGridProps) {
+export default function ContributionGrid({ 
+  filterHabitId = null
+}: ContributionGridProps) {
   const habits = useStore($habits);
   const [hoveredDay, setHoveredDay] = useState<DayData | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const { weeks, monthLabels } = useMemo(() => {
-    const today = new Date();
-    const weeksToShow = 52;
-    
-    const startDate = startOfWeek(subWeeks(today, weeksToShow - 1), { weekStartsOn: 1 });
-    
+  // Generate contribution data map
+  const dayDataMap = useMemo(() => {
     const filteredHabits = filterHabitId
       ? habits.filter(h => h.id === filterHabitId)
       : habits;
     
-    const allDaysData = generateContributionData(filteredHabits, 365);
-    const dayDataMap = new Map(allDaysData.map(d => [d.date, d]));
-    
-    const weeks: (DayData | null)[][] = [];
-    const monthLabels: { month: number; weekIndex: number }[] = [];
-    
-    let currentDate = startDate;
-    let lastMonth = -1;
-    
-    for (let week = 0; week < weeksToShow; week++) {
-      const weekDays: (DayData | null)[] = [];
-      
-      for (let day = 0; day < 7; day++) {
-        const dateStr = format(currentDate, 'yyyy-MM-dd');
-        const dayData = dayDataMap.get(dateStr);
-        
-        if (currentDate > today) {
-          weekDays.push(null);
-        } else if (dayData) {
-          weekDays.push(dayData);
-        } else {
-          weekDays.push({
-            date: dateStr,
-            activeHabits: 0,
-            totalHabits: 0,
-            level: 0,
-          });
-        }
-        
-        const month = getMonth(currentDate);
-        if (month !== lastMonth && day === 0) {
-          monthLabels.push({ month, weekIndex: week });
-          lastMonth = month;
-        }
-        
-        currentDate = addDays(currentDate, 1);
-      }
-      
-      weeks.push(weekDays);
-    }
-    
-    return { weeks, monthLabels };
+    const allDaysData = generateContributionData(filteredHabits, 400);
+    return new Map(allDaysData.map(d => [d.date, d]));
   }, [habits, filterHabitId]);
 
   const handleMouseEnter = (day: DayData, event: React.MouseEvent) => {
@@ -95,80 +67,65 @@ export default function ContributionGrid({ filterHabitId = null }: ContributionG
   };
 
   return (
-    <div className="contribution-wrapper">
-      {/* Month labels */}
-      <div className="contribution-months">
-        {weeks.map((_, weekIndex) => {
-          const monthLabel = monthLabels.find(m => m.weekIndex === weekIndex);
-          return (
-            <div
-              key={weekIndex}
-              className="contribution-month-label"
-            >
-              {monthLabel ? MONTHS[monthLabel.month] : ''}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Grid */}
-      <div className="contribution-grid">
-        {/* Day labels */}
-        <div className="contribution-day-labels">
-          {DAYS_OF_WEEK.map((day, index) => (
-            <div
-              key={index}
-              className="contribution-day-label"
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Contribution squares */}
-        <div className="contribution-weeks">
-          {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="contribution-week">
-              {week.map((day, dayIndex) => (
-                <motion.div
-                  key={`${weekIndex}-${dayIndex}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: (weekIndex * 7 + dayIndex) * 0.0005 }}
-                  className={`contribution-cell ${
-                    day === null
-                      ? 'bg-transparent'
-                      : `${LEVEL_CLASSES[day.level]} contribution-cell-hover`
-                  }`}
-                  onMouseEnter={day ? (e) => handleMouseEnter(day, e) : undefined}
-                  onMouseLeave={handleMouseLeave}
-                />
-              ))}
-            </div>
-          ))}
+    <div className="contribution-container">
+      {/* Header with navigation */}
+      <div className="contribution-header">
+        <div className="contribution-nav">
+          <button 
+            onClick={() => setCurrentMonth(prev => subMonths(prev, 1))}
+            className="contribution-nav-btn"
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="contribution-month-title">
+            {format(currentMonth, 'MMMM yyyy')}
+          </span>
+          <button 
+            onClick={() => setCurrentMonth(prev => addMonths(prev, 1))}
+            className="contribution-nav-btn"
+            disabled={isSameMonth(currentMonth, new Date())}
+            aria-label="Next month"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      {/* Month Grid */}
+      <AnimatePresence mode="wait">
+        <MonthView
+          key={`month-${format(currentMonth, 'yyyy-MM')}`}
+          currentMonth={currentMonth}
+          dayDataMap={dayDataMap}
+          onHover={handleMouseEnter}
+          onLeave={handleMouseLeave}
+        />
+      </AnimatePresence>
 
       {/* Tooltip */}
-      {hoveredDay && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="contribution-tooltip"
-          style={{
-            left: tooltipPosition.x,
-            top: tooltipPosition.y,
-            transform: 'translate(-50%, -100%)',
-          }}
-        >
-          <p className="text-white">
-            {hoveredDay.activeHabits}/{hoveredDay.totalHabits} active
-          </p>
-          <p className="text-muted mt-0\.5">
-            {format(parseISO(hoveredDay.date), 'MMM d, yyyy')}
-          </p>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {hoveredDay && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            className="contribution-tooltip"
+            style={{
+              left: tooltipPosition.x,
+              top: tooltipPosition.y,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <p className="contribution-tooltip-count">
+              {hoveredDay.activeHabits}/{hoveredDay.totalHabits} completed
+            </p>
+            <p className="contribution-tooltip-date">
+              {format(parseISO(hoveredDay.date), 'EEEE, MMM d, yyyy')}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Legend */}
       <div className="contribution-legend">
@@ -186,3 +143,99 @@ export default function ContributionGrid({ filterHabitId = null }: ContributionG
     </div>
   );
 }
+
+// Month Calendar View
+function MonthView({
+  currentMonth,
+  dayDataMap,
+  onHover,
+  onLeave,
+}: {
+  currentMonth: Date;
+  dayDataMap: Map<string, DayData>;
+  onHover: (day: DayData, event: React.MouseEvent) => void;
+  onLeave: () => void;
+}) {
+  const days = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    
+    // Get the day of week for the first day (0 = Sunday, 1 = Monday, etc.)
+    const startDayOfWeek = getDay(monthStart);
+    // Convert to Monday-based index (0 = Monday)
+    const startOffset = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+    
+    // Create array with empty slots for days before month starts
+    const calendarDays: (Date | null)[] = [];
+    for (let i = 0; i < startOffset; i++) {
+      calendarDays.push(null);
+    }
+    calendarDays.push(...daysInMonth);
+    
+    // Fill remaining slots to complete the grid
+    const remainingSlots = 7 - (calendarDays.length % 7);
+    if (remainingSlots < 7) {
+      for (let i = 0; i < remainingSlots; i++) {
+        calendarDays.push(null);
+      }
+    }
+    
+    return calendarDays;
+  }, [currentMonth]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 10 }}
+      className="month-view"
+    >
+      {/* Day headers */}
+      <div className="month-header">
+        {DAYS_OF_WEEK_SHORT.map((day, index) => (
+          <div key={index} className="month-header-cell">
+            <span className="month-header-short">{day}</span>
+            <span className="month-header-full">{DAYS_OF_WEEK_FULL[index]}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="month-grid">
+        {days.map((date, index) => {
+          if (!date) {
+            return <div key={`empty-${index}`} className="month-cell month-cell-empty" />;
+          }
+
+          const dateStr = format(date, 'yyyy-MM-dd');
+          const dayData = dayDataMap.get(dateStr);
+          const isTodayDate = isToday(date);
+          const isFutureDate = isFuture(date);
+          const dayNumber = date.getDate();
+          
+          const level = dayData?.level ?? 0;
+          const hasActivity = dayData && dayData.activeHabits > 0;
+
+          return (
+            <motion.div
+              key={dateStr}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.008 }}
+              className={`month-cell ${isTodayDate ? 'month-cell-today' : ''} ${isFutureDate ? 'month-cell-future' : ''} ${hasActivity ? 'month-cell-active' : ''}`}
+              onMouseEnter={dayData && !isFutureDate ? (e) => onHover(dayData, e) : undefined}
+              onMouseLeave={onLeave}
+            >
+              <span className="month-cell-day">{dayNumber}</span>
+              {!isFutureDate && (
+                <div className={`month-cell-indicator ${LEVEL_CLASSES[level]}`} />
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+

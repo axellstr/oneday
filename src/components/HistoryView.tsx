@@ -80,7 +80,7 @@ export default function HistoryView() {
           className="space-y-8"
         >
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm-grid-cols-3 gap-3">
             <StatCard
               label="Best"
               value={stats.bestStreak ? `${stats.bestStreak.days}` : '0'}
@@ -118,7 +118,7 @@ export default function HistoryView() {
               ))}
             </div>
 
-            <div className="card card-padded overflow-x-auto">
+            <div className="dashboard-card">
               <ContributionGrid filterHabitId={selectedHabitId} />
             </div>
           </div>

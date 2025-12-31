@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import type { HabitIcon, HabitFormData } from '../types';
 import { HABIT_ICONS } from '../lib/constants';
-import { $isModalOpen, $editingHabit, closeModal, addHabit, updateHabit } from '../stores/habits';
+import { $isModalOpen, $editingHabit, $habits, closeModal, addHabit, updateHabit } from '../stores/habits';
 
 const ICON_MAP: Record<HabitIcon, React.ComponentType<{ className?: string }>> = {
   'cigarette-off': CigaretteOff,
@@ -35,12 +35,17 @@ const ICON_MAP: Record<HabitIcon, React.ComponentType<{ className?: string }>> =
   smile: Smile,
 };
 
+const MAX_NAME_LENGTH = 50;
+const MAX_HABITS = 20;
+
 export default function HabitModal() {
   const isOpen = useStore($isModalOpen);
   const editingHabit = useStore($editingHabit);
+  const habits = useStore($habits);
   
   const [name, setName] = useState('');
   const [icon, setIcon] = useState<HabitIcon>('target');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (editingHabit) {
@@ -50,12 +55,56 @@ export default function HabitModal() {
       setName('');
       setIcon('target');
     }
+    setError(null);
   }, [editingHabit, isOpen]);
+
+  const validateName = (value: string): string | null => {
+    const trimmed = value.trim();
+    
+    if (!trimmed) {
+      return 'Habit name is required';
+    }
+    
+    if (trimmed.length > MAX_NAME_LENGTH) {
+      return `Name must be ${MAX_NAME_LENGTH} characters or less`;
+    }
+    
+    // Check for duplicate names (case-insensitive)
+    const isDuplicate = habits.some(
+      h => h.name.toLowerCase() === trimmed.toLowerCase() && h.id !== editingHabit?.id
+    );
+    
+    if (isDuplicate) {
+      return 'A habit with this name already exists';
+    }
+    
+    return null;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Limit input length
+    if (value.length <= MAX_NAME_LENGTH) {
+      setName(value);
+      // Clear error on typing
+      if (error) setError(null);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim()) return;
+    const validationError = validateName(name);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    // Check habit limit for new habits
+    if (!editingHabit && habits.length >= MAX_HABITS) {
+      setError(`You can only have up to ${MAX_HABITS} habits`);
+      return;
+    }
 
     const data: HabitFormData = {
       name: name.trim(),
@@ -69,7 +118,9 @@ export default function HabitModal() {
     }
   };
 
-  const isValid = name.trim().length > 0;
+  const trimmedName = name.trim();
+  const isValid = trimmedName.length > 0 && trimmedName.length <= MAX_NAME_LENGTH;
+  const charsRemaining = MAX_NAME_LENGTH - name.length;
 
   return (
     <AnimatePresence>
@@ -103,18 +154,33 @@ export default function HabitModal() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="modal-body space-y-6">
+              {/* Error message */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="form-error"
+                >
+                  {error}
+                </motion.div>
+              )}
+
               {/* Name input */}
               <div>
-                <label className="form-label">
-                  Name
-                </label>
+                <div className="form-label-row">
+                  <label className="form-label">Name</label>
+                  <span className={`form-char-count ${charsRemaining < 10 ? 'form-char-count-warning' : ''}`}>
+                    {charsRemaining}
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={handleNameChange}
                   placeholder="No smoking, Gym, Reading..."
-                  className="form-input"
+                  className={`form-input ${error ? 'form-input-error' : ''}`}
                   autoFocus
+                  maxLength={MAX_NAME_LENGTH}
                 />
               </div>
 

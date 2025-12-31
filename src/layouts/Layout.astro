@@ -5,7 +5,7 @@ interface Props {
   title?: string;
 }
 
-const { title = 'oneday' } = Astro.props;
+const { title = '1DAY' } = Astro.props;
 ---
 
 <!doctype html>
@@ -15,15 +15,15 @@ const { title = 'oneday' } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Build habits. Track streaks. One day at a time." />
     <meta name="theme-color" content="#0d1117" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/sun.svg" />
     <title>{title}</title>
     
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="oneday" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+    <meta name="apple-mobile-web-app-title" content="1DAY" />
+    <link rel="apple-touch-icon" href="/sun.svg" />
   </head>
   <body>
     <slot />

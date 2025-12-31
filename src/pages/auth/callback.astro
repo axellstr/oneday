@@ -13,12 +13,13 @@ if (error) {
 }
 ---
 
-<Layout title="Signing in... - oneday">
+<Layout title="Signing in... - 1DAY">
   <div class="callback-page">
     <div class="callback-content">
       <div class="callback-spinner"></div>
       <h1 class="callback-title">Completing sign in...</h1>
       <p class="callback-text">Please wait while we verify your credentials.</p>
+      <p id="debug-info" class="callback-debug"></p>
     </div>
   </div>
 </Layout>
@@ -27,67 +28,100 @@ if (error) {
   import { supabase } from '../../lib/supabase';
 
   async function handleCallback() {
-    console.log('Callback: Starting auth flow...');
-    console.log('Callback: URL hash:', window.location.hash);
-    
+    const debugEl = document.getElementById('debug-info');
+    const updateDebug = (msg: string) => {
+      if (debugEl && import.meta.env.DEV) {
+        debugEl.textContent = msg;
+      }
+    };
+
     try {
-      // With implicit flow, tokens are in the URL hash
-      // The Supabase client should detect and process them automatically
-      // But we need to ensure it happens before we check the session
-      
-      // First, let's manually check if there's a hash with tokens
-      if (window.location.hash) {
-        console.log('Callback: Hash detected, waiting for Supabase to process...');
+      // Check URL for authorization code (PKCE flow)
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get('code');
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+
+      updateDebug(`Code: ${code ? 'yes' : 'no'}, Token: ${accessToken ? 'yes' : 'no'}`);
+
+      // PKCE Flow: Exchange authorization code for session
+      if (code) {
+        updateDebug('Exchanging code for session...');
         
-        // Wait for Supabase to process the hash
-        // The onAuthStateChange will fire when session is established
-        return new Promise<void>((resolve) => {
-          const timeout = setTimeout(() => {
-            console.log('Callback: Timeout waiting for auth');
-            window.location.href = '/auth/signin?error=timeout';
-            resolve();
-          }, 10000);
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        
+        if (error) {
+          updateDebug(`Exchange error: ${error.message}`);
           
-          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log('Callback: Auth state changed:', event, !!session);
-            
-            if (event === 'SIGNED_IN' && session) {
-              clearTimeout(timeout);
-              subscription.unsubscribe();
-              console.log('Callback: Signed in, redirecting to app...');
-              window.location.href = '/app';
-              resolve();
-            }
-          });
-        });
+          // Maybe the code was already exchanged, check for existing session
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            updateDebug('Found existing session, redirecting...');
+            window.location.replace('/app');
+            return;
+          }
+          
+          window.location.replace('/auth/signin?error=' + encodeURIComponent(error.message));
+          return;
+        }
+        
+        if (data?.session) {
+          updateDebug('Session established, redirecting...');
+          // Use replace to prevent back button issues
+          window.location.replace('/app');
+          return;
+        }
       }
-      
-      // No hash - check if we already have a session
-      console.log('Callback: No hash, checking existing session...');
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Callback: Session error:', error);
-        window.location.href = '/auth/signin?error=' + encodeURIComponent(error.message);
-        return;
+
+      // Implicit Flow fallback: Token in hash
+      if (accessToken) {
+        updateDebug('Processing hash token...');
+        
+        // Wait for Supabase to process the hash automatically
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          window.location.replace('/app');
+          return;
+        }
       }
+
+      // No code or token - check for existing session
+      updateDebug('Checking for existing session...');
+      const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        console.log('Callback: Session found, redirecting to app...');
-        window.location.href = '/app';
+        updateDebug('Found session, redirecting...');
+        window.location.replace('/app');
         return;
       }
-      
-      // No session - redirect to sign in
-      console.log('Callback: No session, redirecting to signin...');
-      window.location.href = '/auth/signin';
+
+      // No session found
+      updateDebug('No session found, redirecting to sign in...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      window.location.replace('/auth/signin');
       
     } catch (err) {
-      console.error('Callback error:', err);
-      window.location.href = '/auth/signin?error=callback_failed';
+      const message = err instanceof Error ? err.message : 'Authentication failed';
+      updateDebug(`Error: ${message}`);
+      
+      // Try one more time to get session
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          window.location.replace('/app');
+          return;
+        }
+      } catch {
+        // Ignore
+      }
+      
+      window.location.replace('/auth/signin?error=' + encodeURIComponent(message));
     }
   }
 
+  // Run immediately
   handleCallback();
 </script>
 
@@ -127,5 +161,12 @@ if (error) {
   .callback-text {
     font-size: 0.875rem;
     color: var(--color-text-muted);
+  }
+
+  .callback-debug {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-family: monospace;
   }
 </style>

@@ -4,7 +4,7 @@ import Header from '../../components/Header.astro';
 import Navigation from '../../components/Navigation.astro';
 ---
 
-<Layout title="Settings - oneday">
+<Layout title="Settings - 1DAY">
   <Header title="Settings" showBack={true} />
   <main class="settings-container">
     <div class="space-y-6">
@@ -15,7 +15,7 @@ import Navigation from '../../components/Navigation.astro';
             <span class="settings-icon-text">○</span>
           </div>
           <div>
-            <h2 class="settings-app-name">oneday</h2>
+            <h2 class="settings-app-name">1DAY</h2>
             <p class="settings-app-subtitle">One day at a time</p>
           </div>
         </div>
@@ -112,7 +112,7 @@ import Navigation from '../../components/Navigation.astro';
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `oneday-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `1day-export-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   });

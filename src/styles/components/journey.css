@@ -1,0 +1,127 @@
+/* ========================================
+   JOURNEY CARD
+   ======================================== */
+
+.journey-card {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.journey-card-main {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  transition: background-color var(--transition-fast);
+}
+
+.journey-card-main-clickable {
+  cursor: pointer;
+}
+
+.journey-card-main-clickable:hover {
+  background-color: #0d0e0f;
+}
+
+.journey-card-main-static {
+  cursor: default;
+}
+
+.journey-card-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.journey-card-days {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: white;
+  font-variant-numeric: tabular-nums;
+}
+
+.journey-card-name {
+  font-size: 0.875rem;
+  color: white;
+}
+
+.journey-card-stats {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.journey-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.journey-card-returns {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.journey-card-expanded {
+  border-top: 1px solid var(--color-border);
+  padding: 0.75rem 1rem;
+}
+
+.journey-card-expanded-title {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.75rem;
+}
+
+.journey-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-left: 2px solid;
+  padding-left: 0.75rem;
+}
+
+.journey-entry-current {
+  border-left-color: white;
+}
+
+.journey-entry-past {
+  border-left-color: #2a2a2a;
+}
+
+.journey-entry-title {
+  font-size: 0.75rem;
+  color: white;
+}
+
+.journey-entry-title-past {
+  color: var(--color-text-secondary);
+}
+
+.journey-entry-date {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.journey-entry-days {
+  font-size: 0.875rem;
+  color: white;
+  font-variant-numeric: tabular-nums;
+}
+
+.journey-entry-days-past {
+  color: var(--color-text-secondary);
+}
+

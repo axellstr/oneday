@@ -1,0 +1,21 @@
+/* ========================================
+   CARD STYLES
+   ======================================== */
+
+.card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: all var(--transition-normal);
+}
+
+.card:hover {
+  background: var(--glass-bg-hover);
+}
+
+.card-padded {
+  padding: 1.5rem;
+}
+

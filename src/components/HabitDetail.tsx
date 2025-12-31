@@ -122,49 +122,47 @@ export default function HabitDetail({ habitId }: HabitDetailProps) {
           className="space-y-6"
         >
           {/* Back button */}
-          <a
-            href="/app"
-            className="inline-flex items-center gap-2 text-muted text-sm transition-colors hover:text-white"
-          >
+          <a href="/app" className="habit-detail-back">
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
           </a>
 
-          {/* Header */}
-          <div className="text-center py-8">
-            <div className="habit-card-icon mx-auto mb-4">
-              <Icon className="w-6 h-6 text-muted" />
+          {/* Header with glass effect */}
+          <div className="habit-detail-header">
+            <div className="habit-detail-icon">
+              <Icon />
             </div>
-            <h1 className="text-2xl font-light text-white tracking-tight mb-1">
+            <h1 className="habit-detail-name">
               {habit.name}
             </h1>
-            <p className="text-xs text-muted uppercase tracking-widest">
+            <p className="habit-detail-since">
               Since {formatDate(habit.createdAt)}
             </p>
           </div>
 
           {/* Big streak number */}
-          <div className="text-center py-6">
+          <div className="habit-detail-streak">
             <motion.p
               key={currentStreak}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="text-7xl font-light text-white tabular-nums tracking-tighter"
+              className="habit-detail-streak-number"
             >
               {currentStreak}
             </motion.p>
-            <p className="text-10 text-muted uppercase tracking-ultra-wide mt-2">
+            <p className="habit-detail-streak-label">
               Current Streak
             </p>
           </div>
 
           {/* Check-in button */}
-          <div className="flex justify-center">
+          <div className="habit-detail-checkin">
             <motion.button
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleToggleComplete}
-              className={`habit-card-checkin-btn px-8 ${
-                isCompletedToday ? 'habit-card-checkin-done' : 'habit-card-checkin-pending'
+              className={`habit-detail-checkin-btn ${
+                isCompletedToday ? 'habit-detail-checkin-done' : 'habit-detail-checkin-pending'
               }`}
             >
               {isCompletedToday ? (
@@ -233,10 +231,7 @@ export default function HabitDetail({ habitId }: HabitDetailProps) {
           </div>
 
           {/* Contribution grid */}
-          <div className="card card-padded overflow-x-auto">
-            <p className="text-10 text-muted uppercase tracking-wider mb-4">
-              Activity
-            </p>
+          <div className="dashboard-card">
             <ContributionGrid filterHabitId={habit.id} />
           </div>
 

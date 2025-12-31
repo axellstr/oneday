@@ -8,6 +8,10 @@ import { $user } from './auth';
 export const $habits = atom<Habit[]>([]);
 export const $habitsLoading = atom<boolean>(true);
 export const $habitsError = atom<string | null>(null);
+export const $habitsInitialized = atom<boolean>(false);
+
+// Track if we're currently loading to prevent race conditions
+let isCurrentlyLoading = false;
 
 // Modal state
 export const $isModalOpen = atom<boolean>(false);
@@ -34,9 +38,22 @@ export async function initializeStore(): Promise<void> {
   if (!user) {
     $habits.set([]);
     $habitsLoading.set(false);
+    $habitsInitialized.set(false);
     return;
   }
 
+  // If already initialized for this user and not forcing refresh, skip
+  if ($habitsInitialized.get() && !isCurrentlyLoading) {
+    $habitsLoading.set(false);
+    return;
+  }
+
+  // Prevent concurrent loads
+  if (isCurrentlyLoading) {
+    return;
+  }
+
+  isCurrentlyLoading = true;
   $habitsLoading.set(true);
   $habitsError.set(null);
 
@@ -52,6 +69,8 @@ export async function initializeStore(): Promise<void> {
       if (error.code === 'PGRST116') {
         $habits.set([]);
         $habitsLoading.set(false);
+        $habitsInitialized.set(true);
+        isCurrentlyLoading = false;
         return;
       }
       throw error;
@@ -59,12 +78,49 @@ export async function initializeStore(): Promise<void> {
 
     const habits = data?.habit_data || [];
     $habits.set(habits as Habit[]);
-  } catch (error) {
-    console.error('Error loading habits:', error);
+    $habitsInitialized.set(true);
+  } catch {
     $habitsError.set('Failed to load habits');
-    $habits.set([]);
+    // Don't clear habits on error - keep showing what we have
   } finally {
     $habitsLoading.set(false);
+    isCurrentlyLoading = false;
+  }
+}
+
+// Force refresh habits (for manual refresh or visibility change)
+export async function refreshHabits(): Promise<void> {
+  const user = $user.get();
+  
+  if (!user || isCurrentlyLoading) {
+    return;
+  }
+
+  // Don't show loading state for background refresh
+  isCurrentlyLoading = true;
+  $habitsError.set(null);
+
+  try {
+    const { data, error } = await supabase
+      .from('user_habits')
+      .select('habit_data')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        $habits.set([]);
+        return;
+      }
+      throw error;
+    }
+
+    const habits = data?.habit_data || [];
+    $habits.set(habits as Habit[]);
+  } catch {
+    // Silent fail for background refresh - keep existing data
+  } finally {
+    isCurrentlyLoading = false;
   }
 }
 
@@ -73,7 +129,6 @@ async function saveHabits(habits: Habit[]): Promise<void> {
   const user = $user.get();
   
   if (!user) {
-    console.warn('Cannot save habits: not authenticated');
     return;
   }
 
@@ -89,11 +144,9 @@ async function saveHabits(habits: Habit[]): Promise<void> {
       });
 
     if (error) {
-      console.error('Error saving habits:', error);
       $habitsError.set('Failed to save habits');
     }
-  } catch (error) {
-    console.error('Error saving habits:', error);
+  } catch {
     $habitsError.set('Failed to save habits');
   }
 }
@@ -266,4 +319,13 @@ export function openModal(habit?: Habit): void {
 export function closeModal(): void {
   $isModalOpen.set(false);
   $editingHabit.set(null);
+}
+
+// Reset store (for logout)
+export function resetHabitsStore(): void {
+  $habits.set([]);
+  $habitsLoading.set(true);
+  $habitsError.set(null);
+  $habitsInitialized.set(false);
+  isCurrentlyLoading = false;
 }

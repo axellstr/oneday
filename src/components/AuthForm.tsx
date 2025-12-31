@@ -1,11 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export function AuthForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    checkExistingSession();
+  }, []);
+
+  async function checkExistingSession() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // User is already logged in, redirect to app
+        window.location.replace('/app');
+        return;
+      }
+    } catch {
+      // Continue to show sign-in form
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  }
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -28,11 +49,20 @@ export function AuthForm() {
         setIsLoading(false);
       }
       // If successful, user will be redirected to Google
-    } catch (err) {
+    } catch {
       setError('Failed to connect to Google. Please try again.');
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div className="auth-checking">
+        <div className="auth-checking-pulse" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -41,9 +71,9 @@ export function AuthForm() {
       className="auth-form-container"
     >
       <div className="auth-header">
-        <h1 className="auth-title">Welcome to 1DAY</h1>
+        <h1 className="auth-title">Welcome back</h1>
         <p className="auth-subtitle">
-          Build habits. Track streaks. One day at a time.
+          Sign in to continue your journey
         </p>
       </div>
 
@@ -94,7 +124,10 @@ export function AuthForm() {
 
       <div className="auth-terms">
         <p>
-          By signing in, you agree to our terms of service and privacy policy.
+          By signing in, you agree to our{' '}
+          <a href="/terms" className="auth-terms-link">Terms of Service</a>
+          {' '}and{' '}
+          <a href="/privacy" className="auth-terms-link">Privacy Policy</a>.
         </p>
       </div>
     </motion.div>

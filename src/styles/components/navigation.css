@@ -1,0 +1,59 @@
+/* ========================================
+   NAVIGATION COMPONENT
+   ======================================== */
+
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: rgba(3, 4, 5, 0.6);
+  backdrop-filter: var(--glass-blur-heavy);
+  -webkit-backdrop-filter: var(--glass-blur-heavy);
+  border-top: 1px solid var(--glass-border);
+}
+
+.nav-inner {
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .nav-inner {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  height: 3.5rem;
+}
+
+.nav-link {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transition: color var(--transition-fast);
+  text-decoration: none;
+}
+
+.nav-link-active {
+  color: white;
+}
+
+.nav-link-inactive {
+  color: var(--color-text-muted);
+}
+
+.nav-link-inactive:hover {
+  color: white;
+}
+

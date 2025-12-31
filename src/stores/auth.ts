@@ -11,13 +11,18 @@ export const $authLoading = atom<boolean>(true);
 export const $authError = atom<string | null>(null);
 export const $authInitialized = atom<boolean>(false);
 
+// Track if auth listener is set up
+let authListenerInitialized = false;
+
 // Computed: is authenticated
 export const $isAuthenticated = computed($user, (user) => user !== null);
 
 // Initialize auth listener - call this once on app load
 export async function initializeAuth(): Promise<void> {
   // Prevent multiple initializations
-  if ($authInitialized.get()) return;
+  if ($authInitialized.get()) {
+    return;
+  }
   
   $authLoading.set(true);
   $authError.set(null);
@@ -27,7 +32,6 @@ export async function initializeAuth(): Promise<void> {
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
-      console.error('Error getting session:', error);
       $authError.set(error.message);
       $authLoading.set(false);
       $authInitialized.set(true);
@@ -40,26 +44,58 @@ export async function initializeAuth(): Promise<void> {
       await fetchProfile(session.user);
     }
 
-    // Listen for auth changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      $session.set(session);
-      $user.set(session?.user ?? null);
+    // Only set up the listener once
+    if (!authListenerInitialized) {
+      authListenerInitialized = true;
+      
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        // Ignore TOKEN_REFRESHED events - they don't change the user
+        if (event === 'TOKEN_REFRESHED') {
+          $session.set(session);
+          return;
+        }
 
-      if (session?.user) {
-        await fetchProfile(session.user);
-      } else {
-        $profile.set(null);
-      }
+        // Ignore INITIAL_SESSION if we're already initialized with a user
+        // This prevents race conditions when tab visibility changes trigger auth checks
+        if (event === 'INITIAL_SESSION') {
+          // Only process if we don't have a user yet, or if session provides a valid user
+          const currentUser = $user.get();
+          if (currentUser && !session?.user) {
+            // Already have a user, don't clear it for an INITIAL_SESSION with no user
+            return;
+          }
+          if (session?.user) {
+            $session.set(session);
+            $user.set(session.user);
+          }
+          return;
+        }
 
-      if (event === 'SIGNED_OUT') {
-        $profile.set(null);
-      }
-    });
+        // For SIGNED_OUT, always clear the user
+        if (event === 'SIGNED_OUT') {
+          $session.set(null);
+          $user.set(null);
+          $profile.set(null);
+          // Reset habits store on sign out
+          const { resetHabitsStore } = await import('./habits');
+          resetHabitsStore();
+          return;
+        }
+
+        // For SIGNED_IN, USER_UPDATED events, update state only if we have a valid session
+        if (session?.user) {
+          $session.set(session);
+          $user.set(session.user);
+          
+          if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+            await fetchProfile(session.user);
+          }
+        }
+      });
+    }
     
     $authInitialized.set(true);
-  } catch (error) {
-    console.error('Auth initialization error:', error);
+  } catch {
     $authError.set('Failed to initialize authentication');
   } finally {
     $authLoading.set(false);
@@ -93,7 +129,6 @@ async function fetchProfile(user: User): Promise<void> {
           .insert(newProfile);
 
         if (insertError) {
-          console.error('Error creating profile:', insertError);
           return;
         }
 
@@ -106,7 +141,6 @@ async function fetchProfile(user: User): Promise<void> {
         });
         return;
       }
-      console.error('Error fetching profile:', error);
       return;
     }
 
@@ -119,8 +153,8 @@ async function fetchProfile(user: User): Promise<void> {
         createdAt: data.created_at,
       });
     }
-  } catch (error) {
-    console.error('Error fetching profile:', error);
+  } catch {
+    // Profile fetch failed silently
   }
 }
 
@@ -133,8 +167,8 @@ export async function signOut(): Promise<void> {
     $user.set(null);
     $session.set(null);
     $profile.set(null);
-  } catch (error) {
-    console.error('Sign out error:', error);
+  } catch {
+    // Sign out failed silently - user state already cleared
   } finally {
     $authLoading.set(false);
   }

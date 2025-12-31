@@ -1,5 +1,5 @@
 -- =====================================================
--- SUPABASE SETUP for oneday
+-- SUPABASE SETUP for 1DAY
 -- Run this in your Supabase SQL Editor
 -- Dashboard > SQL Editor > New Query
 -- =====================================================

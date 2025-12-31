@@ -1,0 +1,43 @@
+/* ========================================
+   STAT CARD
+   ======================================== */
+
+.stat-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 1rem;
+  border-radius: var(--radius);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: all var(--transition-normal);
+}
+
+.stat-card:hover {
+  background: var(--glass-bg-hover);
+  box-shadow: var(--glass-shadow);
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: white;
+  letter-spacing: -0.025em;
+}
+
+.stat-sublabel {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+

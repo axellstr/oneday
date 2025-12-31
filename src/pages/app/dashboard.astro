@@ -3,13 +3,15 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Navigation from '../../components/Navigation.astro';
 import HistoryView from '../../components/HistoryView';
+import ErrorBoundary from '../../components/ErrorBoundary';
 ---
 
-<Layout title="Dashboard - oneday">
+<Layout title="Dashboard - 1DAY">
   <Header title="Dashboard" showBack={false} />
   <main>
-    <HistoryView client:load />
+    <ErrorBoundary client:load>
+      <HistoryView client:load />
+    </ErrorBoundary>
   </main>
   <Navigation currentPath="/app/dashboard" />
 </Layout>
-
